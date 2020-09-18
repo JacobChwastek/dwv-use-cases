@@ -54,6 +54,10 @@ class DwvComponent extends React.Component {
         if (this.props.selectedTool !== prevProps.selectedTool) {
             this.onChangeTool(this.props.selectedTool);
         }
+
+        if (this.props.draw) { this.drawCircle(); }
+
+        if(this.props.reset){ console.log("xd"); this.removeDrawings(); }
       }
 
     render() {
@@ -76,9 +80,9 @@ class DwvComponent extends React.Component {
                 </Modal>
                 <div className="layerContainer">
                     <div className="dropBox dropBoxBorder">
-                        Drag and drop data here.
+                        Przeciągnij i upuść tutaj
                     </div>
-                    <canvas className="imageLayer" onClick={this.calculateClickPosition}>
+                    <canvas className="imageLayer" onClick={this.calculateClickPosition} onClick={e => this.onCanvasClick(e)}>
                         Only for HTML5 compatible browsers...
                     </canvas>
                     <div className="drawDiv"></div>
@@ -138,7 +142,9 @@ class DwvComponent extends React.Component {
                 this.setState({ loadProgress: 0 });
                 alert('Load was aborted.');
             }
-            this.setState({ loadProgress: 100 });
+            this.setState({ loadProgress: 100 }, () => {
+                this.props.handleDicomLoadedState(true);
+            });
         });
         
         app.addEventListener('frame-change', (event) => {
@@ -184,14 +190,14 @@ class DwvComponent extends React.Component {
             const jsonStr = state.toJSON(dwvApp); 
             const json = JSON.parse(jsonStr);
 
-            await this.props.onStateChange(json);
+            await this.props.onStateChange &&  this.props.onStateChange(json);
 
             if (mode === 'add') {
-                this.props.addNewShape(id);
+                this.props.addNewShape && this.props.addNewShape(id);
             }
 
             if (mode === 'delete') {
-                this.props.deleteShape(id);
+                this.props.addNewShape && this.props.deleteShape(id);
             }
         }
     }
@@ -207,6 +213,12 @@ class DwvComponent extends React.Component {
         }
     } 
     
+    removeDrawings = () => {
+        const { dwvApp } = this.state;
+        dwvApp.deleteDraws();
+        this.props.handleReset && this.props.handleReset(false);
+    }
+
     onChangeTool = tool => {
         const {dwvApp, tools: {Draw: {options}}} = this.state;
 
@@ -297,6 +309,50 @@ class DwvComponent extends React.Component {
         dwvApp.loadFiles(event.dataTransfer.files);
         this.hideDropbox();
     }
+
+    drawCircle = () => {
+        const { dwvApp, loadProgress, dataLoaded } = this.state;
+        const { circle: { center: { x, y }, r } } = this.props;
+
+        if (dwvApp && dataLoaded && loadProgress === 100) {
+            const c = new dwv.math.Point2D(x, y);
+            const a = new dwv.math.Point2D(x + r, y + r);
+
+            const shapeGroup = new dwv.tool.draw.EllipseFactory.prototype.create(
+                [c, a],
+                dwvApp.getStyle(),
+                dwvApp.getImage()
+            );
+
+            const layer = dwvApp.getDrawController().getDrawLayer();
+
+            layer.add(shapeGroup);
+
+            layer.draw();
+        }
+    };
+
+
+    onCanvasClick = e => {
+        const { dwvApp } = this.state;
+
+        const layer = dwvApp.getImageLayer();
+
+        const { width, height } = dwvApp.getImageData();
+
+        const canvas = layer.getCanvas();
+
+        const xFactor = width / canvas.width;
+        const yFactor = height / canvas.height;
+
+        const x = (e.clientX - e.target.getBoundingClientRect().left) * xFactor;
+        const y = (e.clientY - e.target.getBoundingClientRect().top) * yFactor;
+
+        this.props.addPoint && this.props.addPoint(x, y);
+    };
+
+
+
 } 
 
 export default DwvComponent;
