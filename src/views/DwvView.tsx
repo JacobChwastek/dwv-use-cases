@@ -22,9 +22,9 @@ type State = {
     circle: Circle;
     canChoosePoints: boolean;
     reset: boolean;
-    pixelSpacing: string;
     menuOption: MenuOption;
     radius: number;
+    pixelSpacing: number;
 };
 
 class DwvView extends Component<Props, State> {
@@ -36,17 +36,17 @@ class DwvView extends Component<Props, State> {
             option: 0,
             draw: false,
             points: [],
-            circle: { center: { x: 0, y: 0 }, r: 0 },
+            circle: { center: { x: 0, y: 0 }, r: 0 , pixelSpacing: 0 },
             canChoosePoints: false,
             reset: false,
-            pixelSpacing: "0",
             menuOption:  null,
-            radius: 0
+            radius: 0,
+            pixelSpacing: 0,
         };
     }
 
     render() {
-        const { isDicomLoaded, draw, circle, reset, pixelSpacing } = this.state;
+        const { isDicomLoaded, draw, circle , reset, pixelSpacing } = this.state;
 
         return (
             <Dwv>
@@ -80,7 +80,7 @@ class DwvView extends Component<Props, State> {
                             handleDraw={this.handleDraw}
                             addPoint={this.handleAddPoint}
                             circle={circle}
-                            hasPixelSpacing={Boolean(parseFloat(pixelSpacing))}
+                            hasPixelSpacing={Boolean(pixelSpacing)}
                         />
                     </Col>
                     <Col span={6}></Col>
@@ -94,7 +94,9 @@ class DwvView extends Component<Props, State> {
     };
 
     handlePixelSpacing = (value : string) => {
-        this.setState({ pixelSpacing: value })
+        const pixelSpacing = parseFloat(value.split("\\")[0]);
+
+        this.setState({pixelSpacing})
     }
 
     handleDraw = (state: boolean) => {
@@ -127,7 +129,7 @@ class DwvView extends Component<Props, State> {
     };
 
     action = () => {
-        const { option, points, circle, pixelSpacing, radius } = this.state;
+        const { option, points, circle, radius, pixelSpacing } = this.state;
 
         switch (option) {
             case 1:
@@ -137,7 +139,6 @@ class DwvView extends Component<Props, State> {
                         points={points}
                         circle={circle}
                         handleReset={this.handleReset}
-                        pixelSpacing={pixelSpacing}
                     />
                 );
             case 2:
@@ -145,9 +146,9 @@ class DwvView extends Component<Props, State> {
                             handlePointsButton={this.handlePointsButton} 
                             points={points} 
                             circle={circle} 
+                            pixelSpacing={pixelSpacing}
                             handleReset={this.handleReset} 
                             handleRadiusChange={this.handleRadiusChange}
-                            pixelSpacing={pixelSpacing}
                             radius={radius}
                     />;
             default:
@@ -156,7 +157,7 @@ class DwvView extends Component<Props, State> {
     };
 
     handleAddPoint = (a: number, b: number, ) => {
-        const { points, canChoosePoints, menuOption } = this.state;
+        const { points, canChoosePoints, menuOption, pixelSpacing } = this.state;
         
         const point: Point = { x: a, y: b };
 
@@ -166,15 +167,17 @@ class DwvView extends Component<Props, State> {
                 if (points.length < 3 && canChoosePoints) {
                     this.setState({ points: [...points, point] }, () => {
                         if (this.state.points.length === 3) {
-                            const circle: Circle = getCircleThrough3Point(
+                            let circle: Circle = getCircleThrough3Point(
                                 this.state.points[0],
                                 this.state.points[1],
                                 this.state.points[2]
                             );
+                            circle.pixelSpacing = pixelSpacing;
+                            
                             this.setState(
                                 {
                                     draw: true,
-                                    circle: circle,
+                                    circle,
                                     canChoosePoints: false,
                                 },
                                 () => this.handleDraw(false)
@@ -192,9 +195,8 @@ class DwvView extends Component<Props, State> {
                     this.setState({ points: [...points, point] }, () => {
                         if (this.state.points.length === 1) {
 
-                            const circle: Circle = { center : { x: point.x, y: point.y }, r: radius }; 
-                            
-                            console.log(circle)
+                            const circle: Circle = { center : { x: point.x, y: point.y }, r: radius, pixelSpacing }; 
+
                             this.setState(
                                 {
                                     draw: true,

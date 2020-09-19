@@ -10,12 +10,11 @@ type Props = {
     handleReset: (state: boolean) => void;
     points: Point[];
     circle: Circle;
-    pixelSpacing: string;
 }
 
 const ThreePointsMenu = (props: Props) => {
 
-    const { circle: { center, r } } = props;
+    const { circle: { center, r, pixelSpacing }, } = props;
     return (
         <Menu>
             <Row gutter={[16, 16]}>
@@ -44,7 +43,7 @@ const ThreePointsMenu = (props: Props) => {
                     </Row>
                     <Row gutter={[16, 16]}>
                         <Col span={24} >
-                            <Statistic title="Promień" suffix="cm" value={pixelToCm(r,props.pixelSpacing).toFixed(3)} />
+                            <Statistic title="Promień" suffix="cm" value={pixelToCm(r,pixelSpacing).toFixed(3)} />
                         </Col>
                     </Row>
                 </>

@@ -1,5 +1,5 @@
 import { Point, Circle } from "./Models";
-
+import _ from "lodash"
 export const getCircleThrough3Point = (a: Point, b: Point, c: Point): Circle => {
     
     const x12 = a.x - b.x;
@@ -41,23 +41,30 @@ export const getCircleThrough3Point = (a: Point, b: Point, c: Point): Circle => 
 
     const center: Point = { x: h + 0, y: k + 0 };
 
-    return { center, r }
+    return { center, r, pixelSpacing: 0 }
 }
 
 export const average = (arr: Array<number>) => arr.reduce( ( p, c ) => p + c, 0 ) / (arr.length || 1);
 
-export const pixelToCm = (r: number, pixelSpacing: string) => {
+export const pixelToCm = (r: number, pixelSpacing: number | string) => {
     if (pixelSpacing && r > 0) {
-        const spacing = pixelSpacing && pixelSpacing.split("\\")[0];
-        return (r * parseFloat(spacing)) / 10;
+        const spacing = verifyPixelSpacing(pixelSpacing);
+        return (r * spacing) / 10;
     }
     return r;
 };
 
-export const cmToPixel = (r: number, pixelSpacing: string) => {
+export const cmToPixel = (r: number, pixelSpacing: number | string) => {
     if (pixelSpacing && r > 0) {
-        const spacing = pixelSpacing && pixelSpacing.split("\\")[0];
-        return (r * 10) / parseFloat(spacing);
+        const spacing = verifyPixelSpacing(pixelSpacing);
+        return (r * 10) / spacing;
     }
     return r;
+}
+
+const verifyPixelSpacing = (pixelSpacing: number | string) => {
+    if(_.isString(pixelSpacing)){
+        return parseFloat(pixelSpacing && pixelSpacing.split("\\")[0]);
+    }
+    return pixelSpacing;
 }

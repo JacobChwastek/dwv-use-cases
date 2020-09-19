@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Point, Circle } from "../utils/Models";
 import { Input, Select, Col, Row, Button } from 'antd';
+import { NumericInput } from "./common"
 import { cmToPixel, pixelToCm } from "../utils/math";
 import styled from "styled-components";
 import _ from "lodash";
@@ -15,51 +16,56 @@ type Props = {
     handleRadiusChange: (value: number) => void;
     points: Point[];
     circle: Circle;
-    pixelSpacing: string;
     radius: any;
+    pixelSpacing: number;
 }
 
 const PointCenterMenu = (props: Props) => {
+ 
+    const [selectState, setSelectState] = useState<Option>("px");
 
-    const onInputChange = (input : any) => {
+    const onInputChange = (input : string) => {
         
-        let r = parseFloat(input);
-        
-        if(_.isNumber(r) && r > 0){
-            props.handleRadiusChange(r);
-            return;
+        const r = parseFloat(input); 
+
+        if(selectState === "cm")
+        {
+            const radius = cmToPixel(r,props.pixelSpacing);
+            props.handleRadiusChange(radius);
         }
-
-        props.handleRadiusChange(0);
+        else{
+            props.handleRadiusChange(r || 0);
+        }
     }
 
     const onOptionChange = (e : Option) => {
-        const { radius } = props;
-        let r = 0;
-
-        if(e === "px"){
-            r = cmToPixel(radius,props.pixelSpacing);
-        }
-        else if( e == "cm"){
-            r = pixelToCm(radius,props.pixelSpacing);
-        }
-        props.handleRadiusChange(r);
+        props.handleRadiusChange(0);
+        setSelectState(e);
     }
 
+    const displayRadius = (value : number) => {
+
+        if(selectState === "cm"){
+            return pixelToCm(value, props.pixelSpacing);
+        }
+
+        return value;
+    }
 
     return (
         <div>
             <Row gutter={[16, 16]}>
                 <Col span={24}>
                     <InputWrapper compact>
-                        <CInput 
-                            style={{ width: '50%' }} 
-                            defaultValue="0" 
-                            value={props.radius} 
-                            onChange={e => onInputChange(e.target.value)}
+                        <NumericInput 
+                            disabled={props.points.length === 1}
+                            defaultValue={0}
+                            // style={{ width: '50%' }} 
+                            value={displayRadius(props.radius)} 
+                            onChange={e => onInputChange(e)}   
                         />
                         
-                        <CSelect defaultValue="cm"  onChange={e => onOptionChange(e)}>
+                        <CSelect defaultValue="px" value={selectState} onChange={e => onOptionChange(e)}>
                             <Option value="cm">cm</Option>
                             <Option value="px">px</Option>
                         </CSelect>

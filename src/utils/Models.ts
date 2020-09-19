@@ -6,5 +6,5 @@ export type Point = {
 export type Circle = {
     center: Point;
     r: number;
-    pixelSpacing?: number;
+    pixelSpacing: number | 0;
 }
