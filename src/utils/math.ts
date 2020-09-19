@@ -45,3 +45,19 @@ export const getCircleThrough3Point = (a: Point, b: Point, c: Point): Circle => 
 }
 
 export const average = (arr: Array<number>) => arr.reduce( ( p, c ) => p + c, 0 ) / (arr.length || 1);
+
+export const pixelToCm = (r: number, pixelSpacing: string) => {
+    if (pixelSpacing && r > 0) {
+        const spacing = pixelSpacing && pixelSpacing.split("\\")[0];
+        return (r * parseFloat(spacing)) / 10;
+    }
+    return r;
+};
+
+export const cmToPixel = (r: number, pixelSpacing: string) => {
+    if (pixelSpacing && r > 0) {
+        const spacing = pixelSpacing && pixelSpacing.split("\\")[0];
+        return (r * 10) / parseFloat(spacing);
+    }
+    return r;
+}

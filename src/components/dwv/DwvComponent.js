@@ -55,6 +55,8 @@ class DwvComponent extends React.Component {
             this.onChangeTool(this.props.selectedTool);
         }
 
+        if (!this.props.hasPixelSpacing) { this.updatePropsParams(); }
+
         if (this.props.draw) { this.drawCircle(); }
 
         if(this.props.reset){ console.log("xd"); this.removeDrawings(); }
@@ -330,6 +332,24 @@ class DwvComponent extends React.Component {
 
             layer.draw();
         }
+    };
+
+    updatePropsParams = () => {
+        const { metaData } = this.state;
+
+        metaData.forEach( meta => {
+
+            // mA
+            if (meta.group === "0x0018" && meta.element === "0x1151") {
+            }
+            //kV
+            if (meta.group === "0x0018" && meta.element === "0x0060") {
+            } 
+
+            if (meta.group === "0x0028" && meta.element === "0x0030") {
+                this.props.handlePixelSpacing && this.props.handlePixelSpacing(meta.value);
+            }
+        });
     };
 
 
